@@ -13,13 +13,16 @@ public class PokemonRequest: NSObject {
     
     static let shared = PokemonRequest()
     var provider: MoyaProvider<PokeAPI>!
-    var _loadingPlugin: [PluginType]!
     
     override init() {
         super.init()
-//        _loadingPlugin = [loadingPluging]
-        provider = MoyaProvider<PokeAPI>()
+        let plugins = [logPluging]
+        provider = MoyaProvider<PokeAPI>(plugins: plugins)
     }
+    
+    lazy var logPluging: PokemonRequestPlugin = {
+        return PokemonRequestPlugin()
+    }()
     
     
 //    lazy var loadingPluging = NetworkActivityPlugin{ (type, target) in
@@ -54,6 +57,25 @@ public class PokemonRequest: NSObject {
                 }
             }
             return Disposables.create()
+        }
+    }
+}
+
+struct PokemonRequestPlugin: PluginType {
+    func willSend(_ request: RequestType, target: TargetType) {
+        print("start")
+        print(request.request?.url ?? "")
+    }
+    
+    func didReceive(_ result: Result<Response, MoyaError>, target: TargetType) {
+        print("end")
+        switch result {
+        case .success(let response):
+            print("end success")
+            print(response.request?.url ?? "")
+        case .failure(let error):
+            print("end failure")
+            print(error)
         }
     }
 }

@@ -7,10 +7,10 @@
 import Moya
 
 enum PokeAPI {
-    case fetchPokemonList
+    case fetchPokemonList(offset: Int, limit: Int)
     case fetchPokemonDetail(url: String)
-    case fetchEvolutionChain(id: Int)
-    case fetchPokemonSpecies(id: Int)
+    case fetchEvolutionChain(url: String)
+    case fetchPokemonSpecies(url: String)
 }
 
 extension PokeAPI: TargetType {
@@ -21,10 +21,10 @@ extension PokeAPI: TargetType {
             return URL(string: path)!
         case .fetchPokemonDetail(let url):
             return URL(string: url)!
-        case .fetchEvolutionChain(let id):
-            return URL(string: path)!
-        case .fetchPokemonSpecies(let id):
-            return URL(string: path)!
+        case .fetchEvolutionChain(let url):
+            return URL(string: url)!
+        case .fetchPokemonSpecies(let url):
+            return URL(string: url)!
         }
         
     }
@@ -39,7 +39,12 @@ extension PokeAPI: TargetType {
     }
     
     public var task: Task {
-        return .requestPlain
+        switch self {
+        case .fetchPokemonList(let offset, let limit):
+            return .requestParameters(parameters: ["offset" : offset, "limit": limit], encoding: URLEncoding.queryString)
+        default:
+            return .requestPlain
+        }
     }
     
     public var method: Method {

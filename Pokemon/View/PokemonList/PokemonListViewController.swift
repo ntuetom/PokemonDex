@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import MJRefresh
 import RxSwift
 import RxDataSources
 
@@ -16,7 +15,6 @@ class PokemonListViewController: UIViewController {
     private var contentView: PokemonListView!
     private var disposebag = DisposeBag()
     weak var collectionView: UICollectionView!
-    weak var refreshFooter: MJRefreshAutoNormalFooter!
     
     lazy var dataSource = {
         return RxCollectionViewSectionedAnimatedDataSource<PokemonSectionDataType>(
@@ -39,6 +37,7 @@ class PokemonListViewController: UIViewController {
     }
 
     override func loadView() {
+        super.loadView()
         self.contentView = PokemonListView(owner: self)
         title = "PokemonDex"
     }
@@ -56,6 +55,8 @@ class PokemonListViewController: UIViewController {
             .map { [PokemonSectionDataType(model: "", items: $0)] }
             .drive(collectionView.rx.items(dataSource: dataSource))
             .disposed(by: disposebag)
+        collectionView.rx.modelSelected(PokemonCellData.self).bind(to: viewModel.didClickCell).disposed(by: disposebag)
+        collectionView.rx.willDisplayCell.bind(to: viewModel.reloadCells).disposed(by: disposebag)
     }
 
     func initializeData() {

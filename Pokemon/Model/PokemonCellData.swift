@@ -10,9 +10,10 @@ import RxDataSources
 struct PokemonCellData: Decodable, IdentifiableType, Hashable {
 
     let name: String
-    var id: Int
-    var url: String
-    var types: [String]
+    let id: Int
+    let url: String
+    let types: [String]
+    let species: BasicType
     
     typealias Identity = Int
     
@@ -20,18 +21,16 @@ struct PokemonCellData: Decodable, IdentifiableType, Hashable {
         return id
     }
     
-    init(name: String = "", id: Int = 0, url: String, types: [String]) {
+    init(name: String = "", id: Int = 0, url: String, types: [String], species: BasicType) {
         self.name = name
         self.id = id
         self.url = url
         self.types = types
+        self.species = species
     }
     
     static func == (lhs: PokemonCellData, rhs: PokemonCellData) -> Bool {
-        return lhs.id == rhs.id &&
-            lhs.name == rhs.name &&
-            lhs.url == rhs.url &&
-            lhs.types == rhs.types
+        return lhs.id == rhs.id
     }
     
     func hash(into hasher: inout Hasher) {
@@ -39,6 +38,7 @@ struct PokemonCellData: Decodable, IdentifiableType, Hashable {
         hasher.combine(name)
         hasher.combine(url)
         hasher.combine(types)
+        hasher.combine(species)
     }
 }
 typealias PokemonSectionDataType = AnimatableSectionModel<String,PokemonCellData>

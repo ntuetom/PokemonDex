@@ -17,6 +17,10 @@ extension BehaviorRelay where Element: RangeReplaceableCollection {
         }
     }
     
+    func sorted() {
+        
+    }
+    
     func acceptAppending(_ element: Element.Element) {
         accept(value + [element])
     }
