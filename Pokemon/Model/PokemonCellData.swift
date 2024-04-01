@@ -11,7 +11,7 @@ struct PokemonCellData: Decodable, IdentifiableType, Hashable {
 
     let name: String
     let id: Int
-    let url: String
+    let imageUrl: String
     let types: [String]
     let species: BasicType
     
@@ -21,10 +21,10 @@ struct PokemonCellData: Decodable, IdentifiableType, Hashable {
         return id
     }
     
-    init(name: String = "", id: Int = 0, url: String, types: [String], species: BasicType) {
+    init(name: String = "", id: Int = 0, imageUrl: String, types: [String], species: BasicType) {
         self.name = name
         self.id = id
-        self.url = url
+        self.imageUrl = imageUrl
         self.types = types
         self.species = species
     }
@@ -36,7 +36,7 @@ struct PokemonCellData: Decodable, IdentifiableType, Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(name)
-        hasher.combine(url)
+        hasher.combine(imageUrl)
         hasher.combine(types)
         hasher.combine(species)
     }

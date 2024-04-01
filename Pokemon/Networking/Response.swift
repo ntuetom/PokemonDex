@@ -11,12 +11,7 @@ struct FetchPokemonListResponse: Decodable {
     let count: Int
     let previous: URL?
     let next: URL?
-    let results: [PokemonBasic]
-}
-
-struct PokemonBasic: Decodable {
-    let name: String
-    let url: String
+    let results: [BasicType]
 }
 
 struct PokemonDetailResponse: Decodable {
@@ -35,9 +30,19 @@ struct Sprites: Decodable {
     }
 }
 
-struct PokemonType: Decodable {
+struct PokemonType: Decodable, Hashable {
     let slot: Int
     let type: BasicType
+    
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        return lhs.slot == rhs.slot &&
+        lhs.type == rhs.type
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(slot)
+        hasher.combine(type)
+    }
 }
 
 struct BasicType: Decodable, Hashable {
@@ -58,10 +63,16 @@ struct BasicType: Decodable, Hashable {
 struct PokemonSpeciesResponse: Decodable {
     let evolutionChain: [String:String]
     let formDescriptions: [FormDescription]
+    let color: BasicType
+    let name: String
+    let id: Int
     
     enum CodingKeys: String, CodingKey {
         case evolutionChain = "evolution_chain"
         case formDescriptions = "form_descriptions"
+        case color = "color"
+        case name = "name"
+        case id = "id"
     }
 }
 

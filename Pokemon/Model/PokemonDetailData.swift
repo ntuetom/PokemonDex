@@ -9,4 +9,7 @@ import Foundation
 
 struct PokemonDetailData: Decodable {
     let basicData: PokemonCellData
+    let evoChain: ChainData
+    let descriptionData: [FormDescription]
+    let color: BasicType
 }

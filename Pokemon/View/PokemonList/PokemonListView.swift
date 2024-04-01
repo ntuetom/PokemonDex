@@ -36,6 +36,8 @@ class PokemonListView: BaseView {
         }
     }
     
+
+    
     override func setupOutlets(owner: AnyObject?) {
         super.setupOutlets(owner: owner)
         if let vc = owner as? PokemonListViewController {

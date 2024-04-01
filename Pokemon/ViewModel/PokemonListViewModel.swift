@@ -8,9 +8,8 @@
 import RxCocoa
 import RxSwift
 
-class PokemonListViewModel: PokemonAttributeProtocol {
+class PokemonListViewModel: BaseViewModel, PokemonAttributeProtocol {
     
-    var disposebag = DisposeBag()
     let pokemonDetailDataSource = BehaviorRelay<[PokemonCellData]>(value: [])
     let cellSize: CGSize
     let didClickCell = PublishSubject<PokemonCellData>()
@@ -27,9 +26,10 @@ class PokemonListViewModel: PokemonAttributeProtocol {
         return false
     }
     
-    init() {
+    override init() {
         let w = (kScreenW-3*kOffset)/2
         cellSize = CGSize(width: w, height: w)
+        super.init()
         subscribe()
     }
     
@@ -43,11 +43,11 @@ class PokemonListViewModel: PokemonAttributeProtocol {
                     self.getList()
                 }
             }
-        }).disposed(by: disposebag)
+        }).disposed(by: disposeBag)
     }
     
     func getList() {
-        let pokemonList = PublishSubject<[PokemonBasic]>()
+        let pokemonList = PublishSubject<[BasicType]>()
         fetchPokemonList(offset: offset, limit: limit)
             .subscribe(onSuccess: {[weak self]response in
                 switch response {
@@ -57,19 +57,18 @@ class PokemonListViewModel: PokemonAttributeProtocol {
                 case .failure(let error):
                     print(error)
                 }
-            }).disposed(by: disposebag)
+            }).disposed(by: disposeBag)
         
         pokemonList
             .observe(on: ConcurrentDispatchQueueScheduler(qos: .userInteractive))
             .flatMap{Observable.from($0)}.map{$0.url}.flatMap{[weak self] url -> Observable<Result<PokemonDetailResponse,ParseResponseError>> in
                 guard let self = self else {return Observable.empty()}
                 return self.fetchPokemonDetail(url: url).asObservable()}
-            .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] response in
                 guard let self = self else {return}
                 switch response {
                 case .success(let detail):
-                    let pokemonCellData = PokemonCellData(name: detail.name, id: detail.id, url: detail.sprites.frontDefault, types: detail.types.map{$0.type.name}, species: detail.species)
+                    let pokemonCellData = PokemonCellData(name: detail.name, id: detail.id, imageUrl: detail.sprites.frontDefault, types: detail.types.map{$0.type.name}, species: detail.species)
                     var tempArray = self.pokemonDetailDataSource.value
                     tempArray.append(pokemonCellData)
                     tempArray.sort{$0.id < $1.id}
@@ -79,7 +78,7 @@ class PokemonListViewModel: PokemonAttributeProtocol {
                 case .failure(let error):
                     print(error)
                 }
-            }).disposed(by: disposebag)
+            }).disposed(by: disposeBag)
         offset += limit
     }
 }

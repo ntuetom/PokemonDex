@@ -10,6 +10,7 @@ import RxSwift
 protocol PokemonAttributeProtocol {
     func fetchPokemonList(offset: Int, limit: Int) -> Single<Result<FetchPokemonListResponse,ParseResponseError>>
     func fetchPokemonDetail(url: String) -> Single<Result<PokemonDetailResponse,ParseResponseError>>
+    func fetchPokemonDetailByKey(key: String) -> Single<Result<PokemonDetailResponse,ParseResponseError>>
 }
 
 extension PokemonAttributeProtocol {
@@ -19,6 +20,10 @@ extension PokemonAttributeProtocol {
     
     func fetchPokemonDetail(url: String) -> Single<Result<PokemonDetailResponse,ParseResponseError>> {
         return requestShared.request(target: .fetchPokemonDetail(url: url))
+    }
+    func fetchPokemonDetailByKey(key: String) ->
+    Single<Result<PokemonDetailResponse,ParseResponseError>> {
+        return requestShared.request(target: .fetchPokemonDetailByKey(key: key))
     }
 }
 

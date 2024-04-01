@@ -14,7 +14,7 @@ struct Domain {
     
     enum Path {
         case list
-        case detail(id: Int)
+        case detail(key: String)
         case evolutionChain(id: Int)
         case pokemonSpecies(id: Int)
         
@@ -22,8 +22,8 @@ struct Domain {
             switch self {
             case .list:
                 return "api/v2/pokemon"
-            case .detail(let id):
-                return "api/v2/pokemon/\(id)"
+            case .detail(let key):
+                return "api/v2/pokemon/\(key)"
             case .evolutionChain(let id):
                 return "api/v2/evolution-chain/\(id)"
             case .pokemonSpecies(let id):

@@ -55,12 +55,21 @@ class PokemonListCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setup(data: PokemonCellData) {
-//        print("CollectionViewCell setup:",data)
+    func setup(data: PokemonEvoData) {
         nameLabel.text = data.name
-        idLabel.text = "#\(data.id)"
+        idLabel.text = "#\(String(format: "%04d", data.id))"
+        typesLabel.text = data.types.map{$0.type.name}.reduce(""){$0+"\n"+$1}
+        likeBtn.isHidden = true
+        if let url = URL(string: data.imageUrl) {
+            imageView.kf.setImage(with: url)
+        }
+    }
+    
+    func setup(data: PokemonCellData) {
+        nameLabel.text = data.name
+        idLabel.text = "#\(String(format: "%04d", data.id))"
         typesLabel.text = data.types.reduce(""){$0+"\n"+$1}
-        if let url = URL(string: data.url) {
+        if let url = URL(string: data.imageUrl) {
             imageView.kf.setImage(with: url)
         }
     }
@@ -89,9 +98,9 @@ class PokemonListCell: UICollectionViewCell {
             make.leading.equalToSuperview().offset(kOffset)
         }
         imageView.snp.makeConstraints { make in
-//            make.leading.equalTo(nameLabel)
-            make.height.equalToSuperview().multipliedBy(0.6)
-            make.center.equalToSuperview()
+//            make.top.equalToSuperview().offset(kOffset)
+//            make.bottom.equalToSuperview().offset(-kOffset)
+            make.edges.equalToSuperview().offset(kOffset)
         }
         typesLabel.snp.makeConstraints { make in
             make.trailing.equalToSuperview().offset(-kOffset)

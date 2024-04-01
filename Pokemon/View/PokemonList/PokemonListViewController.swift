@@ -9,11 +9,10 @@ import UIKit
 import RxSwift
 import RxDataSources
 
-class PokemonListViewController: UIViewController {
+class PokemonListViewController: BaseViewController {
     
     private var viewModel: PokemonListViewModel!
     private var contentView: PokemonListView!
-    private var disposebag = DisposeBag()
     weak var collectionView: UICollectionView!
     
     lazy var dataSource = {
@@ -49,14 +48,14 @@ class PokemonListViewController: UIViewController {
     }
     
     func binding() {
-        collectionView.rx.setDelegate(self).disposed(by: disposebag)
+        collectionView.rx.setDelegate(self).disposed(by: disposeBag)
         viewModel.pokemonDetailDataSource.asDriver()
             .distinctUntilChanged()
             .map { [PokemonSectionDataType(model: "", items: $0)] }
             .drive(collectionView.rx.items(dataSource: dataSource))
-            .disposed(by: disposebag)
-        collectionView.rx.modelSelected(PokemonCellData.self).bind(to: viewModel.didClickCell).disposed(by: disposebag)
-        collectionView.rx.willDisplayCell.bind(to: viewModel.reloadCells).disposed(by: disposebag)
+            .disposed(by: disposeBag)
+        collectionView.rx.modelSelected(PokemonCellData.self).bind(to: viewModel.didClickCell).disposed(by: disposeBag)
+        collectionView.rx.willDisplayCell.bind(to: viewModel.reloadCells).disposed(by: disposeBag)
     }
 
     func initializeData() {
