@@ -14,6 +14,7 @@ struct PokemonCellData: Decodable, IdentifiableType, Hashable {
     let imageUrl: String
     let types: [String]
     let species: BasicType
+    var isSaved: Bool
     
     typealias Identity = Int
     
@@ -27,10 +28,12 @@ struct PokemonCellData: Decodable, IdentifiableType, Hashable {
         self.imageUrl = imageUrl
         self.types = types
         self.species = species
+        self.isSaved = false
     }
     
     static func == (lhs: PokemonCellData, rhs: PokemonCellData) -> Bool {
-        return lhs.id == rhs.id
+        return lhs.id == rhs.id &&
+        lhs.isSaved == rhs.isSaved
     }
     
     func hash(into hasher: inout Hasher) {
@@ -39,6 +42,7 @@ struct PokemonCellData: Decodable, IdentifiableType, Hashable {
         hasher.combine(imageUrl)
         hasher.combine(types)
         hasher.combine(species)
+        hasher.combine(isSaved)
     }
 }
 typealias PokemonSectionDataType = AnimatableSectionModel<String,PokemonCellData>

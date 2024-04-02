@@ -14,6 +14,7 @@ class PokemonDetailViewController: BaseViewController {
     private var viewModel: PokemonDetailViewModel!
     private var contentView: PokemonDetailView!
     weak var collectionView: UICollectionView!
+    weak var saveButton: UIButton!
     
     lazy var dataSource = {
         return RxCollectionViewSectionedAnimatedDataSource<PokemonEvoSectionDataType>(
@@ -66,16 +67,29 @@ class PokemonDetailViewController: BaseViewController {
     }
     
     func binding() {
-        viewModel.speciesInfoDataSource
+        viewModel.speciesInfoEvent
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [unowned self] species in
                 self.contentView.setup(species: species)
             }).disposed(by: disposeBag)
         
         collectionView.rx.setDelegate(self).disposed(by: disposeBag)
+        
         viewModel.evoChainDataSource.asDriver()
             .distinctUntilChanged()
             .drive(collectionView.rx.items(dataSource: dataSource))
+            .disposed(by: disposeBag)
+        
+        collectionView.rx.modelSelected(PokemonEvoData.self)
+            .bind(to: viewModel.didClickCellEvent)
+            .disposed(by: disposeBag)
+        
+        saveButton.rx.tap
+            .bind {[unowned self] in
+                let toggle = !self.viewModel.isSaved
+                self.viewModel.setSaveStatus(toggle)
+                self.contentView.toggleSaveButton(toggle)
+            }
             .disposed(by: disposeBag)
     }
 }

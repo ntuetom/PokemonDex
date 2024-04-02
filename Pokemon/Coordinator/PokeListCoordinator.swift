@@ -14,9 +14,9 @@ class PokeListCoordinator: BaseCoordinator {
         let vc = PokemonListViewController(viewModel: viewModel)
         navigationController.pushViewController(vc, animated: true)
         
-        viewModel.didClickCell.subscribe(onNext: { [weak self] cellData in
+        viewModel.didClickCellEvent.subscribe(onNext: { [weak self] cellData in
             guard let self = self else {return}
-            let detailCoordinator = PokemonDetailCoordinator(navigationController: self.navigationController, data: cellData)
+            let detailCoordinator = PokemonDetailCoordinator(navigationController: self.navigationController, data: cellData, saveBtnEvent: viewModel.saveBtnEvent)
             self.start(coordinator: detailCoordinator)
         }).disposed(by: disposeBag)
     }

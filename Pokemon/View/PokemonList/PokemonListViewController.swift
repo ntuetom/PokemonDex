@@ -17,13 +17,30 @@ class PokemonListViewController: BaseViewController {
     
     lazy var dataSource = {
         return RxCollectionViewSectionedAnimatedDataSource<PokemonSectionDataType>(
-            configureCell: { (dataSource, cv, indexPath, item) in
+            configureCell: { [weak self] (dataSource, cv, indexPath, item) in
               if let cell = cv.dequeueReusableCell(withReuseIdentifier: "PokemonListCell", for: indexPath) as? PokemonListCell {
                   cell.setup(data: item)
+                  cell.saveBtn.rx.tap.bind{ [weak self] in
+                      self?.viewModel.saveBtnEvent.onNext(item)
+                  }.disposed(by: cell.disposeBag)
                   return cell
               }
               return UICollectionViewCell()
           })
+    }()
+    
+    lazy var savedListIcon: UIImage = {
+        return UIImage(systemName: "star.fill")!.withRenderingMode(.alwaysTemplate)
+    }()
+    
+    lazy var allListIcon: UIImage = {
+        return UIImage(systemName: "star")!.withRenderingMode(.alwaysTemplate)
+    }()
+    
+    lazy var rightButton: UIBarButtonItem = {
+        let barButton = UIBarButtonItem(image: allListIcon)
+        barButton.tintColor = UIColor.systemYellow
+        return barButton
     }()
     
     init(viewModel: PokemonListViewModel) {
@@ -38,13 +55,18 @@ class PokemonListViewController: BaseViewController {
     override func loadView() {
         super.loadView()
         self.contentView = PokemonListView(owner: self)
-        title = "PokemonDex"
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupLayout()
         binding()
         initializeData()
+    }
+    
+    func setupLayout() {
+        title = "PokemonDex"
+        navigationItem.rightBarButtonItem = rightButton
     }
     
     func binding() {
@@ -54,8 +76,16 @@ class PokemonListViewController: BaseViewController {
             .map { [PokemonSectionDataType(model: "", items: $0)] }
             .drive(collectionView.rx.items(dataSource: dataSource))
             .disposed(by: disposeBag)
-        collectionView.rx.modelSelected(PokemonCellData.self).bind(to: viewModel.didClickCell).disposed(by: disposeBag)
-        collectionView.rx.willDisplayCell.bind(to: viewModel.reloadCells).disposed(by: disposeBag)
+        collectionView.rx.modelSelected(PokemonCellData.self).bind(to: viewModel.didClickCellEvent).disposed(by: disposeBag)
+        collectionView.rx.willDisplayCell.bind(to: viewModel.reloadCellsEvent).disposed(by: disposeBag)
+        
+        navigationItem.rightBarButtonItem?.rx.tap.bind { [weak self] in
+            guard let self = self else {return}
+            let newValue = !self.viewModel.isSaved.value
+            self.viewModel.isSaved.accept(newValue)
+            let image = newValue ? self.savedListIcon : self.allListIcon
+            self.navigationItem.rightBarButtonItem?.image = image
+        }.disposed(by: disposeBag)
     }
 
     func initializeData() {

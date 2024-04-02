@@ -10,4 +10,8 @@ import RxSwift
 
 class BaseViewController: UIViewController {
     var disposeBag = DisposeBag()
+    
+    deinit {
+        disposeBag = DisposeBag()
+    }
 }

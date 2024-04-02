@@ -8,7 +8,6 @@
 import UIKit
 
 class PokemonDetailView: BaseView {
-    let commonBGColor = UIColor.init(red: 0, green: 0, blue: 0, alpha: 0.7)
     
     lazy var imageView: UIImageView = {
         let iv = UIImageView()
@@ -22,10 +21,26 @@ class PokemonDetailView: BaseView {
         return lb
     }()
     
+    lazy var selectedImage: UIImage = {
+        return UIImage(systemName: "star.fill")!.withRenderingMode(.alwaysTemplate)
+    }()
+    
+    lazy var unSelectedImage: UIImage = {
+        return UIImage(systemName: "star")!.withRenderingMode(.alwaysTemplate)
+    }()
+    
+    lazy var saveBtn: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(unSelectedImage, for: .normal)
+        button.tintColor = .systemYellow
+        return button
+    }()
+    
     lazy var evoChart: UICollectionView = {
         let cv = UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
         cv.register(PokemonListCell.self, forCellWithReuseIdentifier: "PokemonListCell")
         cv.register(EvoSectionHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "EvoSectionHeader")
+        cv.backgroundColor = commonBGColor
         return cv
     }()
     
@@ -60,6 +75,7 @@ class PokemonDetailView: BaseView {
     
     override func initSetupSubviews() {
         super.initSetupSubviews()
+        addSubview(saveBtn)
         addSubview(evoLabel)
         addSubview(imageView)
         addSubview(idLabel)
@@ -71,8 +87,12 @@ class PokemonDetailView: BaseView {
     override func makeSubviewConstraints() {
         super.makeSubviewConstraints()
         idLabel.snp.makeConstraints { make in
-            make.top.equalTo(safeAreaLayoutGuide.snp.top)
+            make.top.equalTo(safeAreaLayoutGuide)
             make.leading.equalToSuperview().offset(kOffset)
+        }
+        saveBtn.snp.makeConstraints { make in
+            make.top.equalTo(idLabel)
+            make.trailing.equalToSuperview().offset(-kOffset)
         }
         imageView.snp.makeConstraints { make in
             make.top.equalTo(safeAreaLayoutGuide.snp.top)
@@ -86,6 +106,7 @@ class PokemonDetailView: BaseView {
         }
         desctiptionLabel.snp.makeConstraints { make in
             make.top.equalTo(typeLabel.snp.bottom).offset(kOffset)
+            make.trailing.equalToSuperview().offset(-kOffset)
             make.leading.equalToSuperview().offset(kOffset)
         }
         evoLabel.snp.makeConstraints { make in
@@ -104,6 +125,7 @@ class PokemonDetailView: BaseView {
     override func setupReferencingOutlets(owner: AnyObject?) {
         if let vc = owner as? PokemonDetailViewController {
             vc.collectionView = evoChart
+            vc.saveButton = saveBtn
         }
     }
     
@@ -123,6 +145,11 @@ class PokemonDetailView: BaseView {
             }
             return "\($0 ?? "")\($1)"
         }
+        saveBtn.setImage(basicData.isSaved ? selectedImage : unSelectedImage, for: .normal)
+    }
+    
+    func toggleSaveButton(_ toggle: Bool) {
+        saveBtn.setImage(toggle ? selectedImage : unSelectedImage, for: .normal)
     }
     
     func setup(species: PokemonSpeciesResponse) {

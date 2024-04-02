@@ -8,6 +8,7 @@
 import UIKit
 import SnapKit
 import Kingfisher
+import RxSwift
 
 class PokemonListCell: UICollectionViewCell {
     
@@ -19,36 +20,51 @@ class PokemonListCell: UICollectionViewCell {
     
     lazy var typesLabel: UILabel = {
         let lb = UILabel()
+        lb.textColor = .systemGray
         lb.numberOfLines = 0
         return lb
     }()
     
     lazy var idLabel: UILabel = {
-        return UILabel()
+        let lb = UILabel()
+        lb.textColor = .systemGray
+        return lb
     }()
     
-    lazy var likeBtn: UIButton = {
+    lazy var selectedImage: UIImage = {
+        return UIImage(systemName: "star.fill")!.withRenderingMode(.alwaysTemplate)
+    }()
+    
+    lazy var unSelectedImage: UIImage = {
+        return UIImage(systemName: "star")!.withRenderingMode(.alwaysTemplate)
+    }()
+    
+    lazy var saveBtn: UIButton = {
         let button = UIButton(type: .system)
-        button.tintColor = .yellow
-        button.setImage(UIImage(systemName: "star.fill"), for: .selected)
-        button.setImage(UIImage(systemName: "star"), for: .normal)
-        button.imageView?.layer.borderColor = UIColor.black.cgColor
-        button.imageView?.layer.borderWidth = 2
+        button.setImage(unSelectedImage, for: .normal)
+        button.tintColor = .systemYellow
         return button
     }()
     
     lazy var nameLabel: UILabel = {
         let lb = UILabel()
         lb.textAlignment = .center
-        lb.textColor = .gray
+        lb.textColor = .systemGray
         lb.numberOfLines = 0
         return lb
     }()
+    
+    var disposeBag = DisposeBag()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
         setupConstraint()
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()
     }
     
     required init?(coder: NSCoder) {
@@ -58,8 +74,13 @@ class PokemonListCell: UICollectionViewCell {
     func setup(data: PokemonEvoData) {
         nameLabel.text = data.name
         idLabel.text = "#\(String(format: "%04d", data.id))"
-        typesLabel.text = data.types.map{$0.type.name}.reduce(""){$0+"\n"+$1}
-        likeBtn.isHidden = true
+        typesLabel.text = data.types.map{$0.type.name}.reduce(""){
+            if $0 != "" {
+                return "\($0 ?? ""),\($1)"
+            }
+            return "\($0 ?? "")\($1)"
+        }
+        saveBtn.isHidden = true
         if let url = URL(string: data.imageUrl) {
             imageView.kf.setImage(with: url)
         }
@@ -69,6 +90,11 @@ class PokemonListCell: UICollectionViewCell {
         nameLabel.text = data.name
         idLabel.text = "#\(String(format: "%04d", data.id))"
         typesLabel.text = data.types.reduce(""){$0+"\n"+$1}
+        if data.isSaved {
+            saveBtn.setImage(selectedImage, for: .normal)
+        } else {
+            saveBtn.setImage(unSelectedImage, for: .normal)
+        }
         if let url = URL(string: data.imageUrl) {
             imageView.kf.setImage(with: url)
         }
@@ -77,7 +103,7 @@ class PokemonListCell: UICollectionViewCell {
     func setupView() {
         layer.borderColor = UIColor.gray.cgColor
         layer.borderWidth = 1
-        contentView.addSubview(likeBtn)
+        contentView.addSubview(saveBtn)
         contentView.addSubview(idLabel)
         contentView.addSubview(imageView)
         contentView.addSubview(nameLabel)
@@ -89,7 +115,7 @@ class PokemonListCell: UICollectionViewCell {
             make.bottom.equalToSuperview().offset(-kOffset)
             make.leading.equalToSuperview().offset(kOffset)
         }
-        likeBtn.snp.makeConstraints { make in
+        saveBtn.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(kOffset)
             make.trailing.equalToSuperview().offset(-kOffset)
         }
@@ -98,9 +124,8 @@ class PokemonListCell: UICollectionViewCell {
             make.leading.equalToSuperview().offset(kOffset)
         }
         imageView.snp.makeConstraints { make in
-//            make.top.equalToSuperview().offset(kOffset)
-//            make.bottom.equalToSuperview().offset(-kOffset)
-            make.edges.equalToSuperview().offset(kOffset)
+            make.top.leading.equalToSuperview().offset(kOffset)
+            make.bottom.trailing.equalToSuperview().offset(-kOffset)
         }
         typesLabel.snp.makeConstraints { make in
             make.trailing.equalToSuperview().offset(-kOffset)

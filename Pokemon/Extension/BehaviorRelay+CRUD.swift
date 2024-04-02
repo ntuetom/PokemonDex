@@ -17,7 +17,7 @@ extension BehaviorRelay where Element: RangeReplaceableCollection {
         }
     }
     
-    func sorted() {
+    func sortedAndInsert(_ element: Element.Element) {
         
     }
     

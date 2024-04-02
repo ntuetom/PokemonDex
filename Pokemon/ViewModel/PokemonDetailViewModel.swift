@@ -12,11 +12,16 @@ import CoreGraphics
 class PokemonDetailViewModel: BaseViewModel,PokemonSpeciesProtocol, PokemonAttributeProtocol {
     
     let pokemonBasicData: PokemonCellData
-    let speciesInfoDataSource = PublishSubject<PokemonSpeciesResponse>()
     let evoChainDataSource = BehaviorRelay<[PokemonEvoSectionDataType]>(value: [])
+    let speciesInfoEvent = PublishSubject<PokemonSpeciesResponse>()
+    let didClickCellEvent = PublishSubject<PokemonEvoData>()
+    private weak var saveBtnEvent: PublishSubject<PokemonCellData>?
+    private(set) var isSaved: Bool
     
-    init(data: PokemonCellData) {
+    init(data: PokemonCellData, saveBtnEvent: PublishSubject<PokemonCellData>? = nil) {
         self.pokemonBasicData = data
+        self.isSaved = data.isSaved
+        self.saveBtnEvent = saveBtnEvent
     }
     
     func getSpecies() {
@@ -25,7 +30,7 @@ class PokemonDetailViewModel: BaseViewModel,PokemonSpeciesProtocol, PokemonAttri
             .map {[unowned self] response -> PokemonSpeciesResponse in
                 do {
                     let species = try response.get()
-                    self.speciesInfoDataSource.onNext(species)
+                    self.speciesInfoEvent.onNext(species)
                     return species
                 } catch let error {
                     throw error
@@ -79,7 +84,7 @@ class PokemonDetailViewModel: BaseViewModel,PokemonSpeciesProtocol, PokemonAttri
     func handleSection(_ data: [PokemonEvoData]) -> [PokemonEvoSectionDataType]{
         var result: [PokemonEvoSectionDataType] = []
         for item in data {
-            if let _first = result.filter{$0.model == "\(item.order)"}.first {
+            if let _first = result.filter({$0.model == "\(item.order)"}).first {
                 var items = _first.items
                 items.append(item)
                 result[item.order] = PokemonEvoSectionDataType(model: "\(item.order)", items: items)
@@ -90,9 +95,16 @@ class PokemonDetailViewModel: BaseViewModel,PokemonSpeciesProtocol, PokemonAttri
         return result
     }
     
+    func setSaveStatus(_ toggle: Bool) {
+        isSaved = toggle
+        var temp = pokemonBasicData
+        temp.isSaved = toggle
+        saveBtnEvent?.onNext(temp)
+    }
+    
     func getCellSize(section: Int) -> CGSize {
         let w = (kScreenW-3*kOffset)/2
-        if let model = evoChainDataSource.value.filter{$0.model == "\(section)"}.first {
+        if let model = evoChainDataSource.value.filter({$0.model == "\(section)"}).first {
             if model.items.count == 1 {
                 return CGSize(width: kScreenW-2*kOffset, height: w)
             }

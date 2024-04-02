@@ -20,7 +20,6 @@ class BaseView: UIView {
         setupOutlets(owner: owner)
         setupReferencingOutlets(owner: owner)
         setupReceivedActions(owner: owner)
-        
     }
     
     required init?(coder aDecoder: NSCoder) {
