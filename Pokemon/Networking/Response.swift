@@ -20,6 +20,7 @@ struct PokemonDetailResponse: Decodable {
     let sprites: Sprites
     let types: [PokemonType]
     let species: BasicType
+    let isSave: Bool?
 }
 
 struct Sprites: Decodable {
@@ -45,7 +46,7 @@ struct PokemonType: Decodable, Hashable {
     }
 }
 
-struct BasicType: Decodable, Hashable {
+struct BasicType: Codable, Hashable {
     let name: String
     let url: String
     

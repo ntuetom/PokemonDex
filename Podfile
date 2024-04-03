@@ -10,5 +10,6 @@ target 'Pokemon' do
 	pod 'Moya'
 	pod 'Alamofire', '4.9.1'
 	pod 'Kingfisher'
+	pod 'SQLite.swift'
 end
 

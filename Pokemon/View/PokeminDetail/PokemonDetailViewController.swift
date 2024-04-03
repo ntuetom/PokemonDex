@@ -11,8 +11,8 @@ import RxDataSources
 
 class PokemonDetailViewController: BaseViewController {
     
-    private var viewModel: PokemonDetailViewModel!
     private var contentView: PokemonDetailView!
+    private weak var viewModel: PokemonDetailViewModel!
     weak var collectionView: UICollectionView!
     weak var saveButton: UIButton!
     
@@ -81,7 +81,11 @@ class PokemonDetailViewController: BaseViewController {
             .disposed(by: disposeBag)
         
         collectionView.rx.modelSelected(PokemonEvoData.self)
-            .bind(to: viewModel.didClickCellEvent)
+            .bind{ [weak self] evoData in
+                guard let self = self else {return}
+                let cellData = PokemonCellData(name: evoData.name, id: evoData.id, imageUrl: evoData.imageUrl, types: evoData.types.map{$0.type.name}, species: evoData.species, isSaved: self.viewModel.pokemonBasicData.isSaved)
+                self.viewModel.didClickCellEvent.onNext(cellData)
+            }
             .disposed(by: disposeBag)
         
         saveButton.rx.tap

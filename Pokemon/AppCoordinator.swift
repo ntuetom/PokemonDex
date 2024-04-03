@@ -15,12 +15,12 @@ final class AppCoordinator: BaseCoordinator {
     init(window: UIWindow) {
         self.window = window
         super.init(navigationController: UINavigationController())
-        
     }
     
     override func start() {
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
+        DatabaseService.instance.initialize()
         
         let coordinator = PokeListCoordinator(navigationController: navigationController)
         start(coordinator: coordinator)

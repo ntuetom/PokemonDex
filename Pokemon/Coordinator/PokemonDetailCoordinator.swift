@@ -21,10 +21,9 @@ class PokemonDetailCoordinator: BaseCoordinator {
         let vc = PokemonDetailViewController(viewModel: viewModel)
         navigationController.pushViewController(vc, animated: true)
         
-        viewModel.didClickCellEvent.subscribe(onNext: { [weak self] evoData in
+        viewModel.didClickCellEvent.subscribe(onNext: { [weak self] cellData in
             guard let self = self else {return}
-            let cellData = PokemonCellData(name: evoData.name, id: evoData.id, imageUrl: evoData.imageUrl, types: evoData.types.map{$0.type.name}, species: evoData.species)
-            let detailCoordinator = PokemonDetailCoordinator(navigationController: self.navigationController, data: cellData)
+            let detailCoordinator = PokemonDetailCoordinator(navigationController: self.navigationController, data: cellData, saveBtnEvent: self.viewModel.saveBtnEvent)
             self.start(coordinator: detailCoordinator)
         }).disposed(by: disposeBag)
     }

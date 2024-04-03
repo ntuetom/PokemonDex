@@ -9,23 +9,25 @@ import RxCocoa
 import RxSwift
 import CoreGraphics
 
-class PokemonDetailViewModel: BaseViewModel,PokemonSpeciesProtocol, PokemonAttributeProtocol {
+class PokemonDetailViewModel: BaseViewModel {
     
     let pokemonBasicData: PokemonCellData
     let evoChainDataSource = BehaviorRelay<[PokemonEvoSectionDataType]>(value: [])
     let speciesInfoEvent = PublishSubject<PokemonSpeciesResponse>()
-    let didClickCellEvent = PublishSubject<PokemonEvoData>()
-    private weak var saveBtnEvent: PublishSubject<PokemonCellData>?
+    let didClickCellEvent = PublishSubject<PokemonCellData>()
+    private(set) weak var saveBtnEvent: PublishSubject<PokemonCellData>?
     private(set) var isSaved: Bool
+    private let service: PokemonService
     
-    init(data: PokemonCellData, saveBtnEvent: PublishSubject<PokemonCellData>? = nil) {
+    init(data: PokemonCellData, saveBtnEvent: PublishSubject<PokemonCellData>? = nil, service: PokemonService = IntegrationDataService()) {
         self.pokemonBasicData = data
         self.isSaved = data.isSaved
         self.saveBtnEvent = saveBtnEvent
+        self.service = service
     }
     
     func getSpecies() {
-        fetchSpecies(url: pokemonBasicData.species.url)
+        service.fetchSpecies(url: pokemonBasicData.species.url)
             .observe(on: ConcurrentDispatchQueueScheduler(qos: .userInteractive))
             .map {[unowned self] response -> PokemonSpeciesResponse in
                 do {
@@ -37,7 +39,7 @@ class PokemonDetailViewModel: BaseViewModel,PokemonSpeciesProtocol, PokemonAttri
                 }
             }
             .flatMap{[unowned self] species in
-                return self.fetchEvolution(url: species.evolutionChain["url"]!)
+                return self.service.fetchEvolution(url: species.evolutionChain["url"]!)
             }
             .map{ [unowned self] response -> [PokemonEvoTemp] in
                 do {
@@ -49,7 +51,7 @@ class PokemonDetailViewModel: BaseViewModel,PokemonSpeciesProtocol, PokemonAttri
                 }
             }
             .flatMap { evos in
-                Single.zip(evos.map{Single.zip(self.fetchPokemonDetailByKey(key: $0.species.name),Single.just($0))})
+                Single.zip(evos.map{Single.zip(self.service.fetchPokemonDetailByKey(key: $0.species.name),Single.just($0))})
             }
             .subscribe(onSuccess: {[unowned self] response in
                 do {

@@ -7,7 +7,7 @@
 
 import RxDataSources
 
-struct PokemonCellData: Decodable, IdentifiableType, Hashable {
+struct PokemonCellData: Codable, IdentifiableType, Hashable {
 
     let name: String
     let id: Int
@@ -22,13 +22,13 @@ struct PokemonCellData: Decodable, IdentifiableType, Hashable {
         return id
     }
     
-    init(name: String = "", id: Int = 0, imageUrl: String, types: [String], species: BasicType) {
+    init(name: String = "", id: Int = 0, imageUrl: String, types: [String], species: BasicType, isSaved: Bool = false) {
         self.name = name
         self.id = id
         self.imageUrl = imageUrl
         self.types = types
         self.species = species
-        self.isSaved = false
+        self.isSaved = isSaved
     }
     
     static func == (lhs: PokemonCellData, rhs: PokemonCellData) -> Bool {

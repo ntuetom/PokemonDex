@@ -71,7 +71,7 @@ class PokemonListViewController: BaseViewController {
     
     func binding() {
         collectionView.rx.setDelegate(self).disposed(by: disposeBag)
-        viewModel.pokemonDetailDataSource.asDriver()
+        viewModel.pokemonDetailDisplayDataSource.asDriver()
             .distinctUntilChanged()
             .map { [PokemonSectionDataType(model: "", items: $0)] }
             .drive(collectionView.rx.items(dataSource: dataSource))
