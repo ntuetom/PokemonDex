@@ -6,24 +6,47 @@
 //
 
 import XCTest
+import RxSwift
 @testable import Pokemon
 
 class PokemonTests: XCTestCase {
 
+    var pokemonListVM: PokemonListViewModel!
+    var pokemonDetailVM: PokemonDetailViewModel!
+    var cellData: PokemonCellData!
+    var mockService = MockService()
+    var mockDB = MockDatabase()
+    var disposeBag = DisposeBag()
+    var testData: (detail: Result<PokemonDetailResponse, ParseResponseError>, count: Int)!
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        cellData = PokemonCellData(imageUrl: "", types: [], species: BasicType(name: "", url: ""))
+        pokemonDetailVM = PokemonDetailViewModel(data: cellData, service: mockService, dbService: mockDB)
+        pokemonListVM = PokemonListViewModel(service: mockService, dbService: mockDB)
+        testData = (detail: .success(PokemonDetailResponse(id: 0, name: "", sprites: Sprites(frontDefault: ""), types: [], species: BasicType(name: "", url: ""), isSave: false)), count: 100)
+        mockService.testData = testData
     }
 
     override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        disposeBag = DisposeBag()
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+    func testHandleSection() throws {
+        let (input,expect) = genEvoData(i: 4)
+        let result = pokemonDetailVM.handleSection(input)
+        XCTAssertEqual(result, expect, "Result is wrong.")
+    }
+    
+    func testGetList() {
+        pokemonListVM.getList()
+        pokemonListVM.pokemonDetailDisplayDataSource.subscribe(onNext: {[weak self]result in
+            do {
+                let detail = try self!.testData.detail.get()
+                let pokemonCellData = PokemonCellData(name: detail.name, id: detail.id, imageUrl: detail.sprites.frontDefault, types: detail.types.map{$0.type.name}, species: detail.species, isSaved: detail.isSave ?? false)
+                XCTAssertEqual(result, [pokemonCellData], "Result is wrong.")
+            } catch {
+                XCTFail()
+            }
+        }).disposed(by: disposeBag)
     }
 
     func testPerformanceExample() throws {
@@ -31,6 +54,17 @@ class PokemonTests: XCTestCase {
         self.measure {
             // Put the code you want to measure the time of here.
         }
+    }
+    
+    func genEvoData(i: Int) -> (input: [PokemonEvoData], output: [PokemonEvoSectionDataType]) {
+        let count = Array(0...i)
+        return (
+            count.map{ _i in
+                PokemonEvoData(name: "my name is count", imageUrl: "", id: _i, types: [], temp: PokemonEvoTemp(species: BasicType(name: "", url: ""), order: 0, evolutionDetails: []), isSaved: false)},
+            [PokemonEvoSectionDataType(model: "0", items: count.map{_i in
+                PokemonEvoData(name: "my name is count", imageUrl: "", id: _i, types: [], temp: PokemonEvoTemp(species: BasicType(name: "", url: ""), order: 0, evolutionDetails: []), isSaved: false)})]
+        )
+        
     }
 
 }

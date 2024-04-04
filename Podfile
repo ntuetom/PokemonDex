@@ -13,3 +13,8 @@ target 'Pokemon' do
 	pod 'SQLite.swift'
 end
 
+target 'PokemonTests' do
+	pod 'RxSwift'
+	pod 'RxDataSources'
+end
+

@@ -18,12 +18,14 @@ class PokemonDetailViewModel: BaseViewModel {
     private(set) weak var saveBtnEvent: PublishSubject<PokemonCellData>?
     private(set) var isSaved: Bool
     private let service: PokemonService
+    private let dbService: DataBaseProtocol
     
-    init(data: PokemonCellData, saveBtnEvent: PublishSubject<PokemonCellData>? = nil, service: PokemonService = IntegrationDataService()) {
+    init(data: PokemonCellData, saveBtnEvent: PublishSubject<PokemonCellData>? = nil, service: PokemonService = IntegrationDataService(), dbService: DataBaseProtocol = DatabaseService.instance) {
         self.pokemonBasicData = data
         self.isSaved = data.isSaved
         self.saveBtnEvent = saveBtnEvent
         self.service = service
+        self.dbService = dbService
     }
     
     deinit {
@@ -31,7 +33,7 @@ class PokemonDetailViewModel: BaseViewModel {
     }
     
     func updateEvoDataStore(_ data: PokemonEvoData) {
-        DatabaseService.instance.update(qId: data.id, model: data)
+        dbService.update(qId: data.id, model: data)
     }
     
     func getSpeciesToNext(evoData: PokemonEvoData) -> PokemonCellData {

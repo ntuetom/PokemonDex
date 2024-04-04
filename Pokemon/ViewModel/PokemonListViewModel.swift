@@ -22,6 +22,7 @@ class PokemonListViewModel: BaseViewModel {
     private var offset = 0
     private var pokemonDetailDataSource: [PokemonCellData] = []
     private let service: PokemonService
+    private let dbService: DataBaseProtocol
     
     var hasRefreshEnd: Bool {
         guard totalCount > pokemonDetailDataSource.count else {
@@ -31,10 +32,11 @@ class PokemonListViewModel: BaseViewModel {
         return false
     }
     
-    init(service: PokemonService = IntegrationDataService()) {
+    init(service: PokemonService = IntegrationDataService(), dbService: DataBaseProtocol = DatabaseService.instance) {
         let w = (kScreenW-3*kOffset)/2
         cellSize = CGSize(width: w, height: w)
         self.service = service
+        self.dbService = dbService
         super.init()
         subscribe()
     }
@@ -74,11 +76,11 @@ class PokemonListViewModel: BaseViewModel {
     
     func updateDetailDataStore(id: Int) {
         pokemonDetailDataSource[id-1].isSaved = !pokemonDetailDataSource[id-1].isSaved
-        DatabaseService.instance.update(qId: id, model: pokemonDetailDataSource[id-1])
+        dbService.update(qId: id, model: pokemonDetailDataSource[id-1])
     }
     
     func insertDetailDataSource(data: PokemonCellData) -> Array<PokemonCellData> {
-        DatabaseService.instance.insert(models: [data])
+        dbService.insert(models: [data])
         pokemonDetailDataSource.append(data)
         pokemonDetailDataSource.sort{$0.id < $1.id}
         return pokemonDetailDataSource
