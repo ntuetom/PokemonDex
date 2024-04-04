@@ -25,12 +25,12 @@
 ## ScreenShot:
 > Pokemon List
 <p align="left">
-<img src=https://drive.google.com/file/d/1Zp_A_TKqUF2A7GNiymzRYJC0-ojGqfyv/view?usp=sharing title="list" width="450px" height="975px">
+<img src=https://github.com/ntuetom/PokemonDex/blob/main/screenShot/list.png title="list" width="450px" height="975px">
 </p>
 
 > Pokemon Detail
 <p align="left">
-<img src=https://drive.google.com/file/d/1QHQRG8IXVSMqm0ireB7ltybBSOpdSR6S/view?usp=sharing title="detail" width="450px" height="975px">
+<img src=https://github.com/ntuetom/PokemonDex/blob/main/screenShot/detail.png title="detail" width="450px" height="975px">
 </p>
 
 > 
