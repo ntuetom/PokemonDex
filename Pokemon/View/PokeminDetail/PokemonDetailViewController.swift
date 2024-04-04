@@ -83,7 +83,7 @@ class PokemonDetailViewController: BaseViewController {
         collectionView.rx.modelSelected(PokemonEvoData.self)
             .bind{ [weak self] evoData in
                 guard let self = self else {return}
-                let cellData = PokemonCellData(name: evoData.name, id: evoData.id, imageUrl: evoData.imageUrl, types: evoData.types.map{$0.type.name}, species: evoData.species, isSaved: self.viewModel.pokemonBasicData.isSaved)
+                let cellData = self.viewModel.getSpeciesToNext(evoData: evoData)
                 self.viewModel.didClickCellEvent.onNext(cellData)
             }
             .disposed(by: disposeBag)

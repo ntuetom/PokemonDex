@@ -8,9 +8,19 @@
 import RxSwift
 
 typealias PokemonService = PokemonAttributeProtocol & PokemonSpeciesProtocol & PokemonGeneralProtocol
+typealias LocalProtocol = LocalPersistProtocol & PokemonAttributeProtocol
+
+protocol LocalPersistProtocol {
+    func fetchLocalPokemonBy(id: Int) -> PokemonCellData?
+    func fetchPokemonEvoDetail(id: Int) -> [String]?
+    func fetchDBPokemonDetailExist() -> Bool
+    func fetchPokemonEvoDataByKey(key: String) -> Single<Result<PokemonCellData, ParseResponseError>>
+}
+
 protocol PokemonGeneralProtocol {
     func fetchPokemonDetailCombine(offset: Int, limit: Int) -> Observable<(detail: Result<PokemonDetailResponse,ParseResponseError>, count: Int)>
-    func fetchPokemonEvoCombine(id: Int, speciesUrl: String) -> Single<[(data: PokemonEvoData, isLocalData: Bool)]>
+    func fetchPokemonEvoCombine(id: Int, speciesUrl: String) -> Single<[Result<(evoData: PokemonEvoData, isLocalData: Bool),ParseResponseError>]>
+    func localFetchPokemonCellData(id: Int) -> PokemonCellData?
 }
 protocol PokemonAttributeProtocol {
     func fetchPokemonList(offset: Int, limit: Int) -> Single<Result<FetchPokemonListResponse,ParseResponseError>>

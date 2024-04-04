@@ -7,20 +7,13 @@
 
 import RxSwift
 
-class LocalService: PokemonAttributeProtocol, PokemonSpeciesProtocol {
+class LocalService: PokemonAttributeProtocol {
     private let dataBase = DatabaseService.instance
     private var localPokemonDetail: [PokemonCellData]?
     
-    func fetchEvolution(url: String) -> Single<Result<EvolutionResponse, ParseResponseError>> {
-        let chainData = ChainData(evolutionDetails: [], evolvesTo: [], isBaby: false, species: BasicType(name: "", url: ""))
+    func fetchPokemonList(offset: Int, limit: Int) -> Single<Result<FetchPokemonListResponse, ParseResponseError>> {
         return Single.create { single -> Disposable in
-            single(.success(.success(EvolutionResponse(chain: chainData, id: 1))))
-            return Disposables.create()
-        }
-    }
-    func fetchSpecies(url: String) -> Single<Result<PokemonSpeciesResponse, ParseResponseError>> {
-        return Single.create { single -> Disposable in
-            single(.success(.success(PokemonSpeciesResponse(evolutionChain: [:], formDescriptions: [], color: BasicType(name: "", url: ""), name: "", id: 1))))
+            single(.success(.success(FetchPokemonListResponse(count: 0, previous: nil, next: nil, results: []))))
             return Disposables.create()
         }
     }
@@ -60,13 +53,9 @@ class LocalService: PokemonAttributeProtocol, PokemonSpeciesProtocol {
             return Disposables.create()
         }
     }
-    func fetchPokemonList(offset: Int, limit: Int) -> Single<Result<FetchPokemonListResponse, ParseResponseError>> {
-        return Single.create { single -> Disposable in
-            single(.success(.success(FetchPokemonListResponse(count: 0, previous: nil, next: nil, results: []))))
-            return Disposables.create()
-        }
-    }
-    
+}
+
+extension LocalService: LocalPersistProtocol {
     func fetchPokemonEvoDataByKey(key: String) -> Single<Result<PokemonCellData, ParseResponseError>> {
        
         return Single.create { [weak self] single -> Disposable in
@@ -74,7 +63,7 @@ class LocalService: PokemonAttributeProtocol, PokemonSpeciesProtocol {
                 single(.success(.success(
                     pokemonDetail)))
             } else {
-                single(.success(.failure(ParseResponseError.parseError(errMsg: "localService fetchPokemonDetailByKey single error"))))
+                single(.success(.failure(ParseResponseError.respnseError(errCode: key, errMsg: "localService fetchPokemonEvoDataByKey single error no such Id"))))
             }
             
             return Disposables.create()
@@ -93,5 +82,9 @@ class LocalService: PokemonAttributeProtocol, PokemonSpeciesProtocol {
             }
         }
         return nil
+    }
+    
+    func fetchLocalPokemonBy(id: Int) -> PokemonCellData?{
+        return dataBase.queryBy(id: id)
     }
 }

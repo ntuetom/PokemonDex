@@ -27,9 +27,14 @@ class PokemonDetailViewModel: BaseViewModel {
     }
     
     func updateEvoDataStore(_ data: PokemonEvoData) {
-        if data.color != nil {
-            DatabaseService.instance.update(qId: data.id, model: data)
+        DatabaseService.instance.update(qId: data.id, model: data)
+    }
+    
+    func getSpeciesToNext(evoData: PokemonEvoData) -> PokemonCellData {
+        if let data = service.localFetchPokemonCellData(id: evoData.id) {
+            return data
         }
+        return PokemonCellData(name: evoData.name, id: evoData.id, imageUrl: evoData.imageUrl, types: evoData.types.map{$0.type.name}, species: evoData.species, isSaved: false)
     }
     
     func getSpecies() {
@@ -38,17 +43,33 @@ class PokemonDetailViewModel: BaseViewModel {
             .observe(on: MainScheduler.instance)
             .subscribe(onSuccess: { [weak self] response in
                 guard let self = self else {return}
-                response.forEach{
-                    if !$0.isLocalData {
-                        self.updateEvoDataStore($0.data)
+                var succesData: [PokemonEvoData] = []
+                response.forEach { responseData in
+                    switch responseData {
+                    case .success(let data):
+                        if !data.isLocalData {
+                            self.updateEvoDataStore(data.evoData)
+                        }
+                        if data.evoData.id == self.pokemonBasicData.id, let color = data.evoData.color {
+                            let speciesData = PokemonSpeciesResponse(evolutionChain: ["url": ""], formDescriptions: data.evoData.formDescriptions ?? [], color: BasicType(name: color, url: ""), name: data.evoData.name, id: data.evoData.id)
+                            self.speciesInfoEvent.onNext(speciesData)
+                        }
+                        succesData.append(data.evoData)
+                    case .failure(let error):
+                        let unSavedKey = error.code
+                        self.service.fetchPokemonDetailByKey(key: unSavedKey).subscribe(onSuccess: { detailResponseData in
+                            switch detailResponseData {
+                            case .success(let detail):
+                                let evoData = PokemonEvoData(name: detail.name, imageUrl: detail.sprites.frontDefault, id: detail.id, types: detail.types, temp: PokemonEvoTemp(species: detail.species, order: 0, evolutionDetails: []), isSaved: false)
+                                succesData.append(evoData)
+                                self.evoChainDataSource.accept(self.handleSection(succesData))
+                            case .failure(let error):
+                                print(error)
+                            }
+                        }).disposed(by: self.disposeBag)
                     }
                 }
-                if let firstData = response.filter({$0.data.id == self.pokemonBasicData.id}).first, let color = firstData.data.color {
-                    let sameIdData = firstData.data
-                    let speciesData = PokemonSpeciesResponse(evolutionChain: ["url": ""], formDescriptions: sameIdData.formDescriptions ?? [], color: BasicType(name: color, url: ""), name: sameIdData.name, id: sameIdData.id)
-                    self.speciesInfoEvent.onNext(speciesData)
-                }
-                self.evoChainDataSource.accept(self.handleSection(response.map{$0.data}))
+                self.evoChainDataSource.accept(self.handleSection(succesData))
             })
             .disposed(by: disposeBag)
     }
@@ -56,12 +77,13 @@ class PokemonDetailViewModel: BaseViewModel {
     func handleSection(_ data: [PokemonEvoData]) -> [PokemonEvoSectionDataType]{
         var result: [PokemonEvoSectionDataType] = []
         for item in data {
-            if let _first = result.filter({$0.model == "\(item.order)"}).first {
+            let order = item.order ?? 0
+            if let _first = result.filter({$0.model == "\(order)"}).first {
                 var items = _first.items
                 items.append(item)
-                result[item.order] = PokemonEvoSectionDataType(model: "\(item.order)", items: items)
+                result[order] = PokemonEvoSectionDataType(model: "\(order)", items: items)
             } else {
-                result.append(PokemonEvoSectionDataType(model: "\(item.order)", items: [item]))
+                result.append(PokemonEvoSectionDataType(model: "\(order)", items: [item]))
             }
         }
         return result

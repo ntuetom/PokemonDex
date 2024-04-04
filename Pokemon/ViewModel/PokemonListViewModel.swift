@@ -44,7 +44,7 @@ class PokemonListViewModel: BaseViewModel {
             guard let self = self else {return}
             let rowIndex = indexPath.row+1
             if rowIndex % self.limit == 0 && rowIndex == self.pokemonDetailDisplayDataSource.value.count {
-                print("reloadCells:",rowIndex)
+//                print("reloadCells:",rowIndex)
                 if !self.hasRefreshEnd {
                     self.getList()
                 }

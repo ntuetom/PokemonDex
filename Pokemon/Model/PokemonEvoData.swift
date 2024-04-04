@@ -21,7 +21,7 @@ struct PokemonEvoData: Decodable, IdentifiableType, Hashable {
     let gender: Int?
     let minLevel: Int?
     let species: BasicType
-    let order: Int
+    let order: Int?
     let color: String?
     let formDescriptions: [FormDescription]?
     let isSaved: Bool

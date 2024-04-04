@@ -63,8 +63,7 @@ public class PokemonRequest: NSObject {
 
 struct PokemonRequestPlugin: PluginType {
     func willSend(_ request: RequestType, target: TargetType) {
-        print("start")
-        print(request.request?.url ?? "")
+//        print(request.request?.url ?? "")
     }
     
     func didReceive(_ result: Result<Response, MoyaError>, target: TargetType) {

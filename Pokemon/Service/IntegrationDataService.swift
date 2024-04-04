@@ -9,9 +9,8 @@ import RxSwift
 
 class IntegrationDataService: PokemonAttributeProtocol, PokemonSpeciesProtocol, PokemonGeneralProtocol {
     
-    private let localService = LocalService()
+    private let localService: LocalProtocol = LocalService()
     private let networkService = NetworkService()
-    private let dataBase = DatabaseService.instance
     private let userInteractQueue = ConcurrentDispatchQueueScheduler(qos: .userInteractive)
     func fetchPokemonList(offset: Int, limit: Int) -> Single<Result<FetchPokemonListResponse,ParseResponseError>> {
         return networkService.fetchPokemonList(offset: offset, limit: limit)
@@ -59,24 +58,29 @@ class IntegrationDataService: PokemonAttributeProtocol, PokemonSpeciesProtocol, 
             .subscribe(on: userInteractQueue)
     }
     
-    func fetchPokemonEvoCombine(id: Int, speciesUrl: String) -> Single<([(data: PokemonEvoData, isLocalData: Bool)])> {
+    func fetchPokemonEvoCombine(id: Int, speciesUrl: String) -> Single<([Result<(evoData: PokemonEvoData, isLocalData: Bool),ParseResponseError>])> {
         if let ids = localService.fetchPokemonEvoDetail(id: id) {
             return Single.zip(ids.map{[unowned self] in
                 self.localService.fetchPokemonEvoDataByKey(key: $0)
             }).map {
-                return $0.map{ detailResponse -> (PokemonEvoData,Bool) in
-                    let cellData = try! detailResponse.get()
-                    
-                    return (PokemonEvoData(name: cellData.name,
-                                           imageUrl: cellData.imageUrl,
-                                           id: cellData.id,
-                                           types:cellData.types.map{PokemonType(slot: 0, type: BasicType(name: $0, url: ""))},
-                                           temp: PokemonEvoTemp(species: cellData.species, order: cellData.evoOrder ?? 0, evolutionDetails: [EvolutionDetails(gender: cellData.gender, min_level: cellData.minLevel, trigger: nil)]),
-                                           color: cellData.color,
-                                           formDescriptions: cellData.formDescription,
-                                           isSaved: cellData.isSaved,
-                                           evoChain: cellData.evoChain),
-                            true)
+                return $0.map{ detailResponse -> Result<(evoData: PokemonEvoData, isLocalData: Bool),ParseResponseError> in
+                    do {
+                        let cellData = try detailResponse.get()
+                        return Result.success((PokemonEvoData(name: cellData.name,
+                                               imageUrl: cellData.imageUrl,
+                                               id: cellData.id,
+                                               types:cellData.types.map{PokemonType(slot: 0, type: BasicType(name: $0, url: ""))},
+                                               temp: PokemonEvoTemp(species: cellData.species, order: cellData.evoOrder ?? 0, evolutionDetails: [EvolutionDetails(gender: cellData.gender, min_level: cellData.minLevel, trigger: nil)]),
+                                               color: cellData.color,
+                                               formDescriptions: cellData.formDescription,
+                                               isSaved: cellData.isSaved,
+                                               evoChain: cellData.evoChain),
+                                true))
+                        
+                    }catch {
+                        print(error)
+                        return Result.failure(error as! ParseResponseError)
+                    }
                 }
             }
         }
@@ -119,16 +123,20 @@ class IntegrationDataService: PokemonAttributeProtocol, PokemonSpeciesProtocol, 
                             self.networkService.fetchPokemonDetailByKey(key: id),
                             Single.just(evoTemp),
                             Single.just("\(data.species.id)" == id ? data.species : nil))
-                            .map{ _data -> (PokemonEvoData,Bool) in
+                            .map{ _data -> Result<(evoData: PokemonEvoData, isLocalData: Bool),ParseResponseError> in
                                 let detail = try! _data.0.get()
                                 let evoTemp = _data.1
                                 let species = _data.2
 
-                                return (PokemonEvoData(name: detail.name, imageUrl: detail.sprites.frontDefault, id: detail.id, types: detail.types, temp: evoTemp, color: species?.color.name, formDescriptions: species?.formDescriptions,isSaved: detail.isSave ?? false, evoChain: evoIdChain),false)
+                                return .success((PokemonEvoData(name: detail.name, imageUrl: detail.sprites.frontDefault, id: detail.id, types: detail.types, temp: evoTemp, color: species?.color.name, formDescriptions: species?.formDescriptions,isSaved: detail.isSave ?? false, evoChain: evoIdChain),false))
                             }
                     })
             }
             .subscribe(on: userInteractQueue)
+    }
+    
+    func localFetchPokemonCellData(id: Int) -> PokemonCellData? {
+        return localService.fetchLocalPokemonBy(id: id)
     }
     
     func handleEvoChain(_ chain: ChainData, order: Int) -> [PokemonEvoTemp] {

@@ -57,7 +57,7 @@ class DataBase {
         do {
             guard let _table = table else{return}
             let lastRowid = try db.run(_table.insertMany(models))
-            print("last inserted id: \(lastRowid)")
+//            print("last inserted id: \(lastRowid)")
         } catch let error {
             throw error
         }
@@ -69,21 +69,23 @@ class DataBase {
             let _evoOrder: Int64? = model.evoOrder != nil ? Int64(model.evoOrder!) : nil
             let _gender: Int64? = model.gender != nil ? Int64(model.gender!) : nil
             let _minLevel: Int64? = model.minLevel != nil ? Int64(model.minLevel!) : nil
-            
-            let lastRowid = try db.run(_table.insert(or: .replace,
-                                                     id <- Int64(model.id),
-                                                     name <- model.name,
-                                                     imageUrl <- model.imageUrl,
-                                                     isSaved <- model.isSaved,
-                                                     types <- model.types,
-                                                     speciesUrl <- model.speciesUrl,
-                                                     color <- model.color,
-                                                     evoChain <- model.evoChain,
-                                                     evoOrder <- _evoOrder,
-                                                     formDescription <- model.formDescription,
-                                                     gender <- _gender,
-                                                     minLevel <- _minLevel))
-            print("last upsert id: \(lastRowid)")
+            let exist = try queryby(qId: Int64(model.id))
+            if exist?.color == nil {
+                let lastRowid = try db.run(_table.insert(or: .replace,
+                                                         id <- Int64(model.id),
+                                                         name <- model.name,
+                                                         imageUrl <- model.imageUrl,
+                                                         isSaved <- model.isSaved,
+                                                         types <- model.types,
+                                                         speciesUrl <- model.speciesUrl,
+                                                         color <- model.color,
+                                                         evoChain <- model.evoChain,
+                                                         evoOrder <- _evoOrder,
+                                                         formDescription <- model.formDescription,
+                                                         gender <- _gender,
+                                                         minLevel <- _minLevel))
+            }
+//            print("last upsert id: \(lastRowid)")
         } catch let error {
             throw error
         }
@@ -124,7 +126,7 @@ class DataBase {
         if let updateTable = table?.filter(id == qId) {
             do {
                 let code = try db.run(updateTable.update(isSaved <- model.isSaved))
-                print(code)
+//                print(code)
                 if code > 0 {
                     return true
                 }
