@@ -41,8 +41,22 @@ class LocalService: PokemonAttributeProtocol, PokemonSpeciesProtocol {
         }
     }
     func fetchPokemonDetailByKey(key: String) -> Single<Result<PokemonDetailResponse, ParseResponseError>> {
-        return Single.create { single -> Disposable in
-            single(.success(.success(PokemonDetailResponse(id: 1, name: "", sprites: Sprites(frontDefault: ""), types: [], species: BasicType(name: "", url: ""), isSave: false))))
+       
+        return Single.create { [weak self] single -> Disposable in
+            if let self = self, let id = Int(key), let pokemonDetail = self.dataBase.queryBy(id: id) {
+                single(.success(.success(
+                    PokemonDetailResponse(
+                        id: pokemonDetail.id,
+                        name: pokemonDetail.name,
+                        sprites: Sprites(frontDefault: pokemonDetail.imageUrl),
+                        types: pokemonDetail.types.map{
+                            PokemonType(slot: 0, type: BasicType(name: $0, url: ""))},
+                        species: pokemonDetail.species,
+                        isSave: pokemonDetail.isSaved))))
+            } else {
+                single(.success(.failure(ParseResponseError.parseError(errMsg: "localService fetchPokemonDetailByKey single error"))))
+            }
+            
             return Disposables.create()
         }
     }
@@ -53,8 +67,31 @@ class LocalService: PokemonAttributeProtocol, PokemonSpeciesProtocol {
         }
     }
     
+    func fetchPokemonEvoDataByKey(key: String) -> Single<Result<PokemonCellData, ParseResponseError>> {
+       
+        return Single.create { [weak self] single -> Disposable in
+            if let self = self, let id = Int(key), let pokemonDetail = self.dataBase.queryBy(id: id) {
+                single(.success(.success(
+                    pokemonDetail)))
+            } else {
+                single(.success(.failure(ParseResponseError.parseError(errMsg: "localService fetchPokemonDetailByKey single error"))))
+            }
+            
+            return Disposables.create()
+        }
+    }
+    
     func fetchDBPokemonDetailExist() -> Bool {
         localPokemonDetail = dataBase.query()
         return localPokemonDetail?.count ?? 0 > 0
+    }
+    
+    func fetchPokemonEvoDetail(id: Int) -> [String]? {
+        if let pokemonDetail = dataBase.queryBy(id: id) {
+            if let evoChain = pokemonDetail.evoChain, pokemonDetail.color != nil {
+                return evoChain.split(separator: ",").map{String($0)}
+            }
+        }
+        return nil
     }
 }

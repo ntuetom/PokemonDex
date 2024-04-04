@@ -7,7 +7,7 @@
 
 import RxSwift
 
-class NetworkService: PokemonAttributeProtocol, PokemonSpeciesProtocol, PokemonGeneralProtocol {
+class NetworkService: PokemonAttributeProtocol, PokemonSpeciesProtocol {
     func fetchPokemonList(offset: Int, limit: Int) -> Single<Result<FetchPokemonListResponse,ParseResponseError>> {
         return requestShared.request(target: .fetchPokemonList(offset: offset, limit: limit))
     }

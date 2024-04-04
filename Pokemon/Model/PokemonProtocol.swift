@@ -9,12 +9,8 @@ import RxSwift
 
 typealias PokemonService = PokemonAttributeProtocol & PokemonSpeciesProtocol & PokemonGeneralProtocol
 protocol PokemonGeneralProtocol {
-    func fetchPokemonDetailCombine(offset: Int, limit: Int) -> Observable<(detail: Result<PokemonDetailResponse,ParseResponseError>, count: Int)>?
-}
-extension PokemonGeneralProtocol {
-    func fetchPokemonDetailCombine(offset: Int, limit: Int) -> Observable<(detail: Result<PokemonDetailResponse,ParseResponseError>, count: Int)>? {
-        return nil
-    }
+    func fetchPokemonDetailCombine(offset: Int, limit: Int) -> Observable<(detail: Result<PokemonDetailResponse,ParseResponseError>, count: Int)>
+    func fetchPokemonEvoCombine(id: Int, speciesUrl: String) -> Single<[(data: PokemonEvoData, isLocalData: Bool)]>
 }
 protocol PokemonAttributeProtocol {
     func fetchPokemonList(offset: Int, limit: Int) -> Single<Result<FetchPokemonListResponse,ParseResponseError>>

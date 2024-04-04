@@ -143,7 +143,7 @@ class PokemonDetailView: BaseView {
             if $0 != "" {
                 return "\($0 ?? ""),\($1)"
             }
-            return "\($0 ?? "")\($1)"
+            return $1
         }
         saveBtn.setImage(basicData.isSaved ? selectedImage : unSelectedImage, for: .normal)
     }

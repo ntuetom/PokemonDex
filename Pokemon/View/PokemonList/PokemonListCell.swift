@@ -78,7 +78,7 @@ class PokemonListCell: UICollectionViewCell {
             if $0 != "" {
                 return "\($0 ?? ""),\($1)"
             }
-            return "\($0 ?? "")\($1)"
+            return $1
         }
         saveBtn.isHidden = true
         if let url = URL(string: data.imageUrl) {
@@ -89,7 +89,12 @@ class PokemonListCell: UICollectionViewCell {
     func setup(data: PokemonCellData) {
         nameLabel.text = data.name
         idLabel.text = "#\(String(format: "%04d", data.id))"
-        typesLabel.text = data.types.reduce(""){$0+"\n"+$1}
+        typesLabel.text = data.types.reduce(""){
+            if $0 != "" {
+                return "\($0 ?? "")\n\($1)"
+            }
+            return $1
+        }
         if data.isSaved {
             saveBtn.setImage(selectedImage, for: .normal)
         } else {

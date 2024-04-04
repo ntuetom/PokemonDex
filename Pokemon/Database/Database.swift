@@ -19,6 +19,12 @@ class DataBase {
     let isSaved = Expression<Bool>("isSaved")
     let types = Expression<String>("types")
     let speciesUrl = Expression<String>("speciesUrl")
+    let color = Expression<String?>("color")
+    let evoOrder = Expression<Int64?>("evoOrder")
+    let evoChain = Expression<String?>("evoChain")
+    let gender = Expression<Int64?>("gender")
+    let minLevel = Expression<Int64?>("minLevel")
+    let formDescription = Expression<String?>("formDescription")
     
     init() throws {
         self.dbPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
@@ -35,11 +41,16 @@ class DataBase {
                 t.column(isSaved)
                 t.column(types)
                 t.column(speciesUrl)
+                t.column(color)
+                t.column(evoOrder)
+                t.column(evoChain)
+                t.column(gender)
+                t.column(minLevel)
+                t.column(formDescription)
             })
         } catch let error {
             throw error
         }
-        
     }
 
     func insert(models: [PokemomCellDao]) throws {
@@ -50,6 +61,47 @@ class DataBase {
         } catch let error {
             throw error
         }
+    }
+    
+    func upsert(model: PokemomCellDao) throws {
+        do {
+            guard let _table = table else{return}
+            let _evoOrder: Int64? = model.evoOrder != nil ? Int64(model.evoOrder!) : nil
+            let _gender: Int64? = model.gender != nil ? Int64(model.gender!) : nil
+            let _minLevel: Int64? = model.minLevel != nil ? Int64(model.minLevel!) : nil
+            
+            let lastRowid = try db.run(_table.insert(or: .replace,
+                                                     id <- Int64(model.id),
+                                                     name <- model.name,
+                                                     imageUrl <- model.imageUrl,
+                                                     isSaved <- model.isSaved,
+                                                     types <- model.types,
+                                                     speciesUrl <- model.speciesUrl,
+                                                     color <- model.color,
+                                                     evoChain <- model.evoChain,
+                                                     evoOrder <- _evoOrder,
+                                                     formDescription <- model.formDescription,
+                                                     gender <- _gender,
+                                                     minLevel <- _minLevel))
+            print("last upsert id: \(lastRowid)")
+        } catch let error {
+            throw error
+        }
+    }
+    
+    func queryby(qId: Int64) throws -> PokemomCellDao? {
+        if let table = table?.filter(id == qId) {
+            do {
+                let mapRowIterator = try db.prepareRowIterator(table)
+                let models = try mapRowIterator.map { row -> PokemomCellDao in
+                    return try row.decode()
+                }
+                return models.first
+            } catch {
+                throw error
+            }
+        }
+        return nil
     }
 
     func query() throws -> Array<PokemomCellDao>? {

@@ -26,61 +26,31 @@ class PokemonDetailViewModel: BaseViewModel {
         self.service = service
     }
     
-    func getSpecies() {
-        service.fetchSpecies(url: pokemonBasicData.species.url)
-            .observe(on: ConcurrentDispatchQueueScheduler(qos: .userInteractive))
-            .map {[unowned self] response -> PokemonSpeciesResponse in
-                do {
-                    let species = try response.get()
-                    self.speciesInfoEvent.onNext(species)
-                    return species
-                } catch let error {
-                    throw error
-                }
-            }
-            .flatMap{[unowned self] species in
-                return self.service.fetchEvolution(url: species.evolutionChain["url"]!)
-            }
-            .map{ [unowned self] response -> [PokemonEvoTemp] in
-                do {
-                    let evo = try response.get()
-                    let chains = self.handleEvoChain(evo.chain, order: 0)
-                    return chains
-                } catch let error {
-                    throw error
-                }
-            }
-            .flatMap { evos in
-                Single.zip(evos.map{Single.zip(self.service.fetchPokemonDetailByKey(key: $0.species.name),Single.just($0))})
-            }
-            .subscribe(onSuccess: {[unowned self] response in
-                do {
-                    let data = try response.map{ res -> PokemonEvoData in
-                        let detail = res.0
-                        let evoTemp = res.1
-                        switch detail {
-                        case .success(let data):
-                            return PokemonEvoData(name: data.name, imageUrl: data.sprites.frontDefault, id: data.id, types: data.types, temp: evoTemp)
-                        case .failure(let error):
-                            throw error
-                        }
-                    }
-                    self.evoChainDataSource.accept(handleSection(data))
-                } catch let error {
-                    print(error)
-                }
-            })
-            .disposed(by: disposeBag)
+    func updateEvoDataStore(_ data: PokemonEvoData) {
+        if data.color != nil {
+            DatabaseService.instance.update(qId: data.id, model: data)
+        }
     }
     
-    func handleEvoChain(_ chain: ChainData, order: Int) -> [PokemonEvoTemp] {
-        var result = [PokemonEvoTemp(species: chain.species, order: order, evolutionDetails: chain.evolutionDetails)]
-        if chain.evolvesTo.count > 0 {
-            result.append(contentsOf: chain.evolvesTo.flatMap{handleEvoChain($0,order: order+1)})
-            return result
-        } else {
-            return result
-        }
+    func getSpecies() {
+        service
+            .fetchPokemonEvoCombine(id: pokemonBasicData.id, speciesUrl: pokemonBasicData.species.url)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onSuccess: { [weak self] response in
+                guard let self = self else {return}
+                response.forEach{
+                    if !$0.isLocalData {
+                        self.updateEvoDataStore($0.data)
+                    }
+                }
+                if let firstData = response.filter({$0.data.id == self.pokemonBasicData.id}).first, let color = firstData.data.color {
+                    let sameIdData = firstData.data
+                    let speciesData = PokemonSpeciesResponse(evolutionChain: ["url": ""], formDescriptions: sameIdData.formDescriptions ?? [], color: BasicType(name: color, url: ""), name: sameIdData.name, id: sameIdData.id)
+                    self.speciesInfoEvent.onNext(speciesData)
+                }
+                self.evoChainDataSource.accept(self.handleSection(response.map{$0.data}))
+            })
+            .disposed(by: disposeBag)
     }
     
     func handleSection(_ data: [PokemonEvoData]) -> [PokemonEvoSectionDataType]{

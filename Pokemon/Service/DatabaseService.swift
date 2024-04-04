@@ -12,7 +12,9 @@ protocol DataBaseProtocol {
     func createTable()
     func insert(models: [PokemonCellData])
     func query() -> [PokemonCellData]?
+    func queryBy(id: Int) -> PokemonCellData?
     func update(qId: Int, model: PokemonCellData)
+    func update(qId: Int, model: PokemonEvoData)
 }
 
 class DatabaseService: DataBaseProtocol {
@@ -56,6 +58,18 @@ class DatabaseService: DataBaseProtocol {
         }
     }
     
+    func queryBy(id: Int) -> PokemonCellData? {
+        userInteractQueue.sync {
+            do {
+                let pokemonDao = try database.queryby(qId: Int64(id))
+                return pokemonDao?.toPokemoCellData()
+            } catch {
+                print(error)
+            }
+            return nil
+        }
+    }
+    
     func query() -> [PokemonCellData]? {
         userInteractQueue.sync {
             do {
@@ -67,6 +81,20 @@ class DatabaseService: DataBaseProtocol {
                 print(error)
             }
             return nil
+        }
+    }
+    
+    func update(qId: Int, model: PokemonEvoData) {
+        utilityQueue.async {[weak self] in
+            do {
+                guard let self = self else {
+                    print("update self nil")
+                    return
+                }
+                try self.database.upsert(model: self.evoDataToDBCellData(data: model))
+            } catch let error{
+                print(error)
+            }
         }
     }
     
@@ -89,8 +117,20 @@ class DatabaseService: DataBaseProtocol {
             if $0 != "" {
                 return "\($0),\($1)"
             }
-            return "\($0)\($1)"
+            return $1
         }
         return PokemomCellDao(name: data.name, id: data.id, imageUrl: data.imageUrl, types: daoTypes, speciesUrl: data.species.url, isSaved: data.isSaved)
+    }
+    
+    func evoDataToDBCellData(data: PokemonEvoData) -> PokemomCellDao {
+        let daoTypes = data.types.reduce("") {
+            if $0 != "" {
+                return "\($0),\($1.type.name)"
+            }
+            return "\($1.type.name)"
+        }
+        
+        let formDescription = data.formDescriptions?.map{$0.description}.first
+        return PokemomCellDao(name: data.name, id: data.id, imageUrl: data.imageUrl, types: daoTypes, speciesUrl: data.species.url, isSaved: data.isSaved, color: data.color, evoOrder: data.order, evoChain: data.evoChain, gender: data.gender, minLevel: data.minLevel, formDescription: formDescription)
     }
 }

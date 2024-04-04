@@ -88,7 +88,7 @@ class PokemonListViewModel: BaseViewModel {
     func getList() {
         offset = pokemonDetailDataSource.count
         service
-            .fetchPokemonDetailCombine(offset: offset, limit: limit)?
+            .fetchPokemonDetailCombine(offset: offset, limit: limit)
             .observe(on: MainScheduler.instance)
             .subscribe({ [weak self] response in
                 guard let self = self, let data = response.element else {return}

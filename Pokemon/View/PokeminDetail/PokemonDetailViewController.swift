@@ -57,8 +57,8 @@ class PokemonDetailViewController: BaseViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        initializeData()
         binding()
+        initializeData()
         contentView.setup(basicData: viewModel.pokemonBasicData)
     }
     

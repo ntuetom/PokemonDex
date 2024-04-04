@@ -22,6 +22,10 @@ struct PokemonEvoData: Decodable, IdentifiableType, Hashable {
     let minLevel: Int?
     let species: BasicType
     let order: Int
+    let color: String?
+    let formDescriptions: [FormDescription]?
+    let isSaved: Bool
+    let evoChain: String?
     
     typealias Identity = Int
     
@@ -29,7 +33,9 @@ struct PokemonEvoData: Decodable, IdentifiableType, Hashable {
         return id
     }
     
-    init(name: String = "", imageUrl: String, id: Int = 0, types: [PokemonType], temp: PokemonEvoTemp) {
+    init(name: String = "", imageUrl: String, id: Int = 0, types: [PokemonType], temp: PokemonEvoTemp, color: String? = nil, formDescriptions: [FormDescription]? = nil, isSaved: Bool = false,
+        evoChain: String? = nil) {
+        
         self.name = name
         self.id = id
         self.imageUrl = imageUrl
@@ -43,6 +49,10 @@ struct PokemonEvoData: Decodable, IdentifiableType, Hashable {
             self.gender = nil
             self.minLevel = nil
         }
+        self.color = color
+        self.formDescriptions = formDescriptions
+        self.isSaved = isSaved
+        self.evoChain = evoChain
     }
     
     static func == (lhs: Self, rhs: Self) -> Bool {
@@ -56,6 +66,8 @@ struct PokemonEvoData: Decodable, IdentifiableType, Hashable {
         hasher.combine(species)
         hasher.combine(gender)
         hasher.combine(minLevel)
+        hasher.combine(color)
+        hasher.combine(formDescriptions)
     }
 }
 typealias PokemonEvoSectionDataType = AnimatableSectionModel<String,PokemonEvoData>

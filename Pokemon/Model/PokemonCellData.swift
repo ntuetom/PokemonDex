@@ -15,6 +15,12 @@ struct PokemonCellData: Codable, IdentifiableType, Hashable {
     let types: [String]
     let species: BasicType
     var isSaved: Bool
+    var color: String?
+    var minLevel: Int?
+    var evoChain: String?
+    var evoOrder: Int?
+    var gender: Int?
+    var formDescription: [FormDescription]?
     
     typealias Identity = Int
     
@@ -22,13 +28,19 @@ struct PokemonCellData: Codable, IdentifiableType, Hashable {
         return id
     }
     
-    init(name: String = "", id: Int = 0, imageUrl: String, types: [String], species: BasicType, isSaved: Bool = false) {
+    init(name: String = "", id: Int = 0, imageUrl: String, types: [String], species: BasicType, isSaved: Bool = false, color: String? = nil, minLevel: Int? = nil, evoChain: String? = nil, evoOrder: Int? = nil, gender: Int? = nil, formDescription: [FormDescription]? = nil) {
         self.name = name
         self.id = id
         self.imageUrl = imageUrl
         self.types = types
         self.species = species
         self.isSaved = isSaved
+        self.color = color
+        self.minLevel = minLevel
+        self.evoChain = evoChain
+        self.evoOrder = evoOrder
+        self.gender = gender
+        self.formDescription = formDescription
     }
     
     static func == (lhs: PokemonCellData, rhs: PokemonCellData) -> Bool {

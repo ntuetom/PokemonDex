@@ -77,9 +77,19 @@ struct PokemonSpeciesResponse: Decodable {
     }
 }
 
-struct FormDescription: Decodable {
+struct FormDescription: Codable, Hashable {
     let description: String
     let language: BasicType
+    
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        return lhs.description == rhs.description &&
+        lhs.language == rhs.language
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(description)
+        hasher.combine(language)
+    }
 }
 
 struct EvolutionResponse: Decodable {
