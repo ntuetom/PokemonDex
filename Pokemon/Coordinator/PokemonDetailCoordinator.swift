@@ -17,6 +17,10 @@ class PokemonDetailCoordinator: BaseCoordinator {
         super.init(navigationController: navigationController)
     }
     
+    deinit {
+        print("PokemonDetailCoordinator deinit")
+    }
+    
     override func start() {
         let vc = PokemonDetailViewController(viewModel: viewModel)
         navigationController.pushViewController(vc, animated: true)
@@ -25,6 +29,11 @@ class PokemonDetailCoordinator: BaseCoordinator {
             guard let self = self else {return}
             let detailCoordinator = PokemonDetailCoordinator(navigationController: self.navigationController, data: cellData, saveBtnEvent: self.viewModel.saveBtnEvent)
             self.start(coordinator: detailCoordinator)
+        }).disposed(by: disposeBag)
+        
+        viewModel.didPopBack.subscribe(onNext: {[weak self] in
+            guard let self = self else {return}
+            self.parentCoordinator?.didFinish(coordinator: self)
         }).disposed(by: disposeBag)
     }
 }

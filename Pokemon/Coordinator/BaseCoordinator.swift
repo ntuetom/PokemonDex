@@ -28,6 +28,10 @@ class BaseCoordinator: Coordinator {
         self.navigationController = navigationController
     }
     
+    deinit{
+        print("BaseCoordinator deinit")
+    }
+    
     func start() {
         fatalError("Start method must be implemented")
     }

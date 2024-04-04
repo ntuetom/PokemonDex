@@ -9,8 +9,10 @@ import RxSwift
 
 class BaseViewModel {
     var disposeBag = DisposeBag()
+    let didPopBack = PublishSubject<Void>()
     
     deinit {
         disposeBag = DisposeBag()
+        print("BaseViewModel deinit")
     }
 }

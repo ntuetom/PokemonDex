@@ -26,6 +26,10 @@ class PokemonDetailViewModel: BaseViewModel {
         self.service = service
     }
     
+    deinit {
+        print("PokemonDetailViewModel deinit")
+    }
+    
     func updateEvoDataStore(_ data: PokemonEvoData) {
         DatabaseService.instance.update(qId: data.id, model: data)
     }

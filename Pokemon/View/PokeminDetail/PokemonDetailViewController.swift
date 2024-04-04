@@ -49,6 +49,10 @@ class PokemonDetailViewController: BaseViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    deinit {
+        print("PokemonDetailViewController deinit")
+    }
+    
     override func loadView() {
         super.loadView()
         self.contentView = PokemonDetailView(owner: self)
@@ -67,13 +71,14 @@ class PokemonDetailViewController: BaseViewController {
     }
     
     func binding() {
+        collectionView.rx.setDelegate(self).disposed(by: disposeBag)
+        navigationController?.delegate = self
+        
         viewModel.speciesInfoEvent
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [unowned self] species in
                 self.contentView.setup(species: species)
             }).disposed(by: disposeBag)
-        
-        collectionView.rx.setDelegate(self).disposed(by: disposeBag)
         
         viewModel.evoChainDataSource.asDriver()
             .distinctUntilChanged()
@@ -104,5 +109,22 @@ extension PokemonDetailViewController: UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         return section == 0 ? .zero : CGSize(width: contentView.frame.width, height: 30)
+    }
+}
+
+extension PokemonDetailViewController: UINavigationControllerDelegate {
+    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+        if let coordinator = navigationController.topViewController?.transitionCoordinator {
+            if coordinator.isInteractive {
+                coordinator.notifyWhenInteractionChanges { [weak self] (context) in
+                    if !context.isCancelled {
+                        self?.viewModel.didPopBack.onNext(())
+                    }
+                }
+                
+            } else if viewController !== self {
+                viewModel.didPopBack.onNext(())
+            }
+        }
     }
 }

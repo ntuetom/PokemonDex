@@ -12,6 +12,7 @@ class BaseViewController: UIViewController {
     var disposeBag = DisposeBag()
     
     deinit {
+        print("BaseViewController deinit")
         disposeBag = DisposeBag()
     }
 }
