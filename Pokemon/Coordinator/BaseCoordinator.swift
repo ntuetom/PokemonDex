@@ -30,6 +30,7 @@ class BaseCoordinator: Coordinator {
     
     deinit{
         print("BaseCoordinator deinit")
+        disposeBag = DisposeBag()
     }
     
     func start() {
@@ -45,6 +46,9 @@ class BaseCoordinator: Coordinator {
     func didFinish(coordinator: Coordinator) {
         if let index = childCoordinators.firstIndex(where: { $0 === coordinator }) {
             childCoordinators.remove(at: index)
+            if let last = navigationController.children.last, let vc = last as? PokemonDetailViewController {
+                navigationController.delegate = vc
+            }
         }
     }
 }

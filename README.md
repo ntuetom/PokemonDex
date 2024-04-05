@@ -6,6 +6,7 @@
 ## Feature:
 - MVVM-C
 - API request
+- React
 - User favorite pokemon save
 - Dynamic loading
 - Pokemon EvoChain 
